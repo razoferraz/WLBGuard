@@ -20,28 +20,34 @@ namespace WLBGuard
 
         private void Application_ItemSend(object Item, ref bool Cancel)
         {
-            var mail = Item as Outlook.MailItem;
+            var item = new OutlookItem(Item);
 
-            if (mail.DeferredDeliveryTime != s_outlookMagicDateTimeNotDefinedConst)
+            if (!item.IsSupportedItem)
+            {
+                // non-supported item, for now ...
+                return;
+            }
+
+            if (item.DeferredDeliveryTime != s_outlookMagicDateTimeNotDefinedConst)
             {
                 // already deferred, don't get involve
                 return;
             }
 
             DateTime deferredDeliveryTime = GetNextAllowedTime();
-
+          
             if (deferredDeliveryTime <= DateTime.Now)
             {
                 // we are in the allowed time
                 return;
             }
 
-            DialogResult result = MessageBox.Show($"It's off work time, defer this mail to {deferredDeliveryTime}?", "Work-life Balance Guard", MessageBoxButtons.YesNoCancel);//, , button, icon);
+            DialogResult result = MessageBox.Show($"It's off work time, defer this item to {deferredDeliveryTime}?", "Work-life Balance Guard", MessageBoxButtons.YesNoCancel);//, , button, icon);
             
             switch (result)
             {
                 case DialogResult.Yes:
-                    mail.DeferredDeliveryTime = deferredDeliveryTime;
+                    item.DeferredDeliveryTime = deferredDeliveryTime;
                     break;
                 case DialogResult.No:
                     // do nothing
@@ -90,7 +96,48 @@ namespace WLBGuard
         {
             Startup += new EventHandler(WLBGuard_Startup);
         }
-        
+
         #endregion
+
+
+        /// <summary>
+        /// Outlook add-in is using COM, in order to simplify calling code this wraps commonan properties of different wrapped items
+        /// e.g. Mail and Meeting DeferredDeliveryTime
+        /// </summary>
+        private class OutlookItem
+        {
+            private readonly Outlook.MailItem m_mail;
+            private readonly Outlook.MeetingItem m_meeting;
+
+            public OutlookItem(object Item)
+            {
+                m_mail = Item as Outlook.MailItem;
+                m_meeting = Item as Outlook.MeetingItem;
+
+                IsSupportedItem = m_mail != null || m_meeting != null;
+            }
+
+            // Any call to properties when IsSupportedItem is false is unexpected
+            public bool IsSupportedItem { get; private set; }
+
+            public DateTime DeferredDeliveryTime
+            {
+                get
+                {
+                    return m_mail != null ? m_mail.DeferredDeliveryTime : m_meeting.DeferredDeliveryTime;
+                }
+                set
+                {
+                    if (m_mail != null)
+                    {
+                        m_mail.DeferredDeliveryTime = value;
+                    }
+                    else
+                    {
+                        m_meeting.DeferredDeliveryTime = value;
+                    }
+                }
+            }
+        }
     }
 }

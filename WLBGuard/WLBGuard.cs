@@ -36,7 +36,7 @@ namespace WLBGuard
                 return;
             }
 
-            DialogResult result = MessageBox.Show($"It's off work time, defer this mail to {deferredDeliveryTime}?", "Work Life Balance Guard", MessageBoxButtons.YesNoCancel);//, , button, icon);
+            DialogResult result = MessageBox.Show($"It's off work time, defer this mail to {deferredDeliveryTime}?", "Work-life Balance Guard", MessageBoxButtons.YesNoCancel);//, , button, icon);
             
             switch (result)
             {

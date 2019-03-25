@@ -15,10 +15,23 @@ namespace WLBGuard
 
         private void WLBGuard_Startup(object sender, EventArgs e)
         {
-            Application.ItemSend += new Outlook.ApplicationEvents_11_ItemSendEventHandler(Application_ItemSend);
+            // TODO missing configs support
+            Application.ItemSend += new Outlook.ApplicationEvents_11_ItemSendEventHandler(LimitSendMailHours);
+            Application.ItemSend += new Outlook.ApplicationEvents_11_ItemSendEventHandler(LimitMeetings);
         }
 
-        private void Application_ItemSend(object Item, ref bool Cancel)
+        private void LimitMeetings(object Item, ref bool Cancel)
+        {
+            var meeting = Item as Outlook.MeetingItem;
+
+            // is it limited meeting time?
+            if (meeting.)
+            {
+                // meeting.Recipients - count of distinct recipents (groups aren't allowed?)
+            }
+        }
+
+        private void LimitSendMailHours(object Item, ref bool Cancel)
         {
             var item = new OutlookItem(Item);
 
